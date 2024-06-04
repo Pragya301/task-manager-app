@@ -14,6 +14,7 @@ const App = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [filter, setFilter] = useState('all');
   const [user, setUser] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -24,8 +25,14 @@ const App = () => {
           const userTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setTasks(userTasks);
         });
-
-        return () => unsubscribeSnapshot();
+        setSuccessMessage('Successfully Logged In');
+        const timeoutId = setTimeout(() => {
+          setSuccessMessage('');
+        }, 20000); 
+        return () => {
+          clearTimeout(timeoutId);
+          unsubscribeSnapshot();
+        }
       } else {
         setTasks([]);
       }
@@ -80,6 +87,7 @@ const App = () => {
           user ? (
             <div className="app">
               <div className="app-header">
+              {successMessage && <div className="success-message">{successMessage}</div>}
                 <h1>Task Manager</h1>
                 <button onClick={handleSignOut}>Sign Out</button>
               </div>

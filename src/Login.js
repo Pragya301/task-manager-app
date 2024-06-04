@@ -1,5 +1,5 @@
 // src/components/Login.js
-import React, { useState } from 'react';
+import React, { useState  } from 'react';
 import { auth } from './firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -13,9 +13,12 @@ const Login = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login successful!');
+      alert('user sucessfully logged in');
       navigate('/');
     } catch (error) {
       console.error('Error logging in:', error);
+      alert('error while login ');
     }
   };
 
@@ -43,6 +46,6 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Login ;
 
 
