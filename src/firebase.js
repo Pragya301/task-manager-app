@@ -1,9 +1,11 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 
+
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
+
   apiKey: "AIzaSyCuOCeb72HLMbDvVadRtlBDfrM2oUf7xrU",
   authDomain: "task-manager-4bea7.firebaseapp.com",
   projectId: "task-manager-4bea7",
@@ -13,8 +15,8 @@ const firebaseConfig = {
   measurementId: "G-V23JE3P4T4"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-export { auth };
+export { auth, db };

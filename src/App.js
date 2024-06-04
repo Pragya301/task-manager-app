@@ -1,46 +1,65 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import TaskList from './TaskList';
 import TaskForm from './TaskForm';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { collection, addDoc, updateDoc, deleteDoc, onSnapshot, doc, query, where } from 'firebase/firestore';
 import './App.css';
 import Authentication from './Authentication';
 
 const App = () => {
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+  const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
   const [filter, setFilter] = useState('all');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        const q = query(collection(db, 'tasks'), where('uid', '==', user.uid));
+        const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+          const userTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setTasks(userTasks);
+        });
+
+        return () => unsubscribeSnapshot();
+      } else {
+        setTasks([]);
+      }
     });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = (task) => {
-    setTasks([...tasks, { ...task, id: Date.now(), completed: false }]);
+  const addTask = async (task) => {
+    if (user) {
+      await addDoc(collection(db, 'tasks'), {
+        ...task,
+        uid: user.uid,
+        completed: false,
+        createdAt: Date.now(),
+      });
+    }
   };
 
-  const updateTask = (updatedTask) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  const updateTask = async (updatedTask) => {
+    const taskDoc = doc(db, 'tasks', updatedTask.id);
+    await updateDoc(taskDoc, updatedTask);
     setEditingTask(null);
   };
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id));
+  const deleteTask = async (id) => {
+    const taskDoc = doc(db, 'tasks', id);
+    await deleteDoc(taskDoc);
   };
 
-  const toggleComplete = (id) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task));
+  const toggleComplete = async (id) => {
+    const task = tasks.find(task => task.id === id);
+    const taskDoc = doc(db, 'tasks', id);
+    await updateDoc(taskDoc, { completed: !task.completed });
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -83,9 +102,10 @@ const App = () => {
         }
       />
       <Route path="/authentication" element={<Authentication />} />
-     
     </Routes>
   );
 };
 
 export default App;
+
+
