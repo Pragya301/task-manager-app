@@ -3,13 +3,14 @@
 .authentication {
     max-width: 400px;
     margin: auto;
+    margin-top: 10rem;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
   }
-  
+
   .auth_more {
     margin-top: 20px;
   }
